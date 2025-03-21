@@ -35,10 +35,9 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
-      validate(value) {
-        if (!["Male", "Female", "Others"].includes(value)) {
-          throw new MyError(422, "Gender type is not valid");
-        }
+      enum: {
+        values: ["Male", "Female", "Others"],
+        message: `{VALUES} gender type is not valid`,
       },
     },
     photoUrl: {
@@ -74,6 +73,11 @@ userSchema.methods.verifyPassword = async function (inputPassword) {
   return isPasswordValid;
 };
 
+userSchema.methods.getPasswordHash = async function (password) {
+  const hashPassword = await bcrypt.hash(password, 10);
+  return hashPassword;
+};
+
 const User = mongoose.model("User", userSchema);
 
-module.exports = { User };
+module.exports = User;

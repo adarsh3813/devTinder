@@ -1,13 +1,12 @@
 const express = require("express");
 const { userAuth } = require("../middlewares/auth");
-const { checkEmptyRequestBody } = require("../middlewares/Validations");
 const { MyError } = require("../utils/MyError");
-const { User } = require("../models/user");
+const { validateProfileUpdateData } = require("../utils/Validations");
 
 const profileRouter = express.Router();
 
 // Get Profile
-profileRouter.get("/Profile", userAuth, async (req, res) => {
+profileRouter.get("/Profile/view", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     res.send({
@@ -21,56 +20,57 @@ profileRouter.get("/Profile", userAuth, async (req, res) => {
   }
 });
 
-// Update User using ID
-profileRouter.patch(
-  "/Profile/:userId",
-  checkEmptyRequestBody,
-  async (req, res) => {
-    try {
-      const userData = req.body;
-      const allowedUpdates = [
-        "photoUrl",
-        "about",
-        "skills",
-        "lastName",
-        "firstName",
-        "gender",
-      ];
-      const isUpdateValid = Object.keys(userData).every((k) =>
-        allowedUpdates.includes(k)
-      );
-
-      if (!isUpdateValid) {
-        throw new MyError(400, "Update Failed, invalid fields!");
-      }
-
-      const userId = req.params?.userId;
-      const updatedUser = await User.findByIdAndUpdate(userId, userData, {
-        returnDocument: "after",
-        runValidators: true,
-      });
-      res.send({
-        message: "User updated successfully",
-        user: updatedUser,
-      });
-    } catch (err) {
-      res
-        .status(err.statusCode ? err.statusCode : 500)
-        .send(`ERROR: ${err.message}`);
-    }
-  }
-);
-
-// Delete User using ID
-profileRouter.delete("/Profile", checkEmptyRequestBody, async (req, res) => {
+// Update Profile of logged in User
+profileRouter.patch("/Profile/edit", userAuth, async (req, res) => {
   try {
-    const userId = req.body.userId;
-    const deletedUser = await User.findByIdAndDelete(userId);
-    if (deletedUser !== null) {
-      res.send("User deleted successfully");
-    } else {
-      res.status(400).send("User does not exist");
+    if (!validateProfileUpdateData(req)) {
+      throw new MyError(400, "Invalid update request!");
     }
+    const userUpdateRequestData = req.body;
+    const loggedInUser = req.user;
+
+    Object.keys(userUpdateRequestData).forEach(
+      (key) => (loggedInUser[key] = userUpdateRequestData[key])
+    );
+    await loggedInUser.save();
+
+    res.send({
+      message: `${loggedInUser.firstName}'s profile has been updated successfully`,
+      details: loggedInUser,
+    });
+  } catch (err) {
+    res
+      .status(err.statusCode ? err.statusCode : 500)
+      .send(`ERROR: ${err.message}`);
+  }
+});
+
+profileRouter.patch("/Profile/updatePassword", userAuth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const loggedInUser = req.user;
+
+    isOldPasswordCorrect = await loggedInUser.verifyPassword(oldPassword);
+    if (!isOldPasswordCorrect) {
+      throw new MyError("You Passoword is incorrect!");
+    }
+    loggedInUser.password = await loggedInUser.getPasswordHash(newPassword);
+    await loggedInUser.save();
+    res.send({ message: "Password has been updated!" });
+  } catch (err) {
+    res
+      .status(err.statusCode ? err.statusCode : 500)
+      .send("ERROR: " + err.message);
+  }
+});
+
+// Delete Profile of logged in User
+profileRouter.delete("/Profile/delete", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    await loggedInUser.deleteOne();
+    req.customMessage = "Your Profile is deleted. You are being logged out!!";
+    res.status(301).redirect("/Profile/Logout");
   } catch (err) {
     res
       .status(err.statusCode ? err.statusCode : 500)

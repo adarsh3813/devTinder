@@ -1,15 +1,13 @@
 const express = require("express");
 const { validateSignupData } = require("../utils/Validations");
 const bcrypt = require("bcrypt");
-const { User } = require("../models/user");
-const { checkEmptyRequestBody } = require("../middlewares/Validations");
+const User = require("../models/user");
 const { MyError } = require("../utils/MyError");
-const auth = require("../middlewares/auth");
 
 const authRouter = express.Router();
 
 // Sign up
-authRouter.post("/Signup", checkEmptyRequestBody, async (req, res) => {
+authRouter.post("/Signup", async (req, res) => {
   try {
     validateSignupData(req);
     const { firstName, lastName, email, password } = req.body;
@@ -30,7 +28,7 @@ authRouter.post("/Signup", checkEmptyRequestBody, async (req, res) => {
 });
 
 // Login Post call
-authRouter.post("/Login", checkEmptyRequestBody, async (req, res) => {
+authRouter.post("/Login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const userDb = await User.findOne({ email: email });
@@ -53,6 +51,11 @@ authRouter.post("/Login", checkEmptyRequestBody, async (req, res) => {
       .status(err.statusCode ? err.statusCode : 500)
       .send(`ERROR: ${err.message}`);
   }
+});
+
+authRouter.post("/Logout", (req, res) => {
+  res.cookie("accessToken", null, { expires: new Date(Date.now()) });
+  res.send(req.customMessage ? req.customMessage : "Logged out!!");
 });
 
 module.exports = authRouter;

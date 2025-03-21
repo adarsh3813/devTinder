@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { MyError } = require("../utils/MyError");
-const { User } = require("../models/user");
+const User = require("../models/user");
 
 const userAuth = async (req, res, next) => {
   try {
@@ -12,7 +12,6 @@ const userAuth = async (req, res, next) => {
 
     const decodedObj = jwt.verify(accessToken, "adarshdubey");
     const { _id } = decodedObj;
-
     const userDb = await User.findById(_id).exec();
 
     if (!userDb) {
