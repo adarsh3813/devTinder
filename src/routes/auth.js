@@ -45,7 +45,7 @@ authRouter.post("/Login", async (req, res) => {
       expires: new Date(Date.now() + 36000000),
     });
 
-    res.send("Login succesfull");
+    res.json({ message: "Login Successful", user: userDb });
   } catch (err) {
     res
       .status(err.statusCode ? err.statusCode : 500)
