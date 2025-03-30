@@ -7,7 +7,7 @@ const userAuth = async (req, res, next) => {
     const { accessToken } = req.cookies;
 
     if (!accessToken) {
-      throw new MyError(401, "Unautorized request");
+      throw new MyError(401, "Unauthorized request");
     }
 
     const decodedObj = jwt.verify(accessToken, "adarshdubey");

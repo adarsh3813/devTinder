@@ -46,7 +46,7 @@ requestRouter.post(
       const savedConnectionRequest = await connectionRequest.save();
 
       res.send({
-        messgae: `Connection request for ${status} received`,
+        message: `Connection request for ${status} received`,
         data: savedConnectionRequest,
       });
     } catch (err) {

@@ -18,8 +18,12 @@ authRouter.post("/Signup", async (req, res) => {
       email,
       password: passwordHash,
     });
-    await user.save();
-    res.send("Sign up completed");
+    const savedUser = await user.save();
+    const token = await savedUser.getJwt();
+    res.cookie("accessToken", token, {
+      expires: new Date(Date.now() + 36000000),
+    });
+    res.json({ message: "Sign up completed", data: savedUser });
   } catch (err) {
     res
       .status(err.statusCode ? err.statusCode : 500)
@@ -49,13 +53,13 @@ authRouter.post("/Login", async (req, res) => {
   } catch (err) {
     res
       .status(err.statusCode ? err.statusCode : 500)
-      .send(`ERROR: ${err.message}`);
+      .send({ message: `ERROR: ${err.message}` });
   }
 });
 
 authRouter.post("/Logout", (req, res) => {
   res.cookie("accessToken", null, { expires: new Date(Date.now()) });
-  res.send(req.customMessage ? req.customMessage : "Logged out!!");
+  res.json({ message: req.customMessage ? req.customMessage : "Logged out!!" });
 });
 
 module.exports = authRouter;

@@ -11,7 +11,7 @@ profileRouter.get("/Profile/view", userAuth, async (req, res) => {
     const loggedInUser = req.user;
     res.send({
       message: `Welcome ${loggedInUser.firstName}`,
-      info: loggedInUser,
+      data: loggedInUser,
     });
   } catch (err) {
     res
