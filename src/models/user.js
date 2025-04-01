@@ -62,7 +62,7 @@ const userSchema = new Schema(
 );
 
 userSchema.methods.getJwt = async function () {
-  const token = await jwt.sign({ _id: this._id }, "adarshdubey", {
+  const token = await jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
     expiresIn: "1h",
   });
   return token;

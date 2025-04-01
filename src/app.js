@@ -8,6 +8,8 @@ const requestRouter = require("./routes/request");
 const userRouter = require("./routes/user");
 const cors = require("cors");
 
+require("dotenv").config();
+
 const app = express();
 
 app.use(
@@ -30,5 +32,5 @@ connectDb()
     app.listen(3000, () => console.log("Server listening on port 3000"));
   })
   .catch((err) => {
-    console.error(err);
+    console.error(err.message);
   });
